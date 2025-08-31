@@ -115,8 +115,8 @@ module kampus::data_mahasiswa_lengkap {
         jurusan: String,
         umur: u8,
         ctx: &mut TxContext,
-    ): Mahasiswa {
-        Mahasiswa {
+    ) {
+        let mahasiswa = Mahasiswa {
             id: object::new(ctx),
             nama,
             nim,
@@ -125,7 +125,8 @@ module kampus::data_mahasiswa_lengkap {
             total_sks: 0,
             aktif: true,
             lulus: false,
-        }
+        };
+        transfer::transfer(mahasiswa, tx_context::sender(ctx));
     }
 
     // Fungsi untuk ambil mata kuliah (tambah SKS)
@@ -149,7 +150,6 @@ module kampus::data_mahasiswa_lengkap {
 
 module kampus::fungsi_vector {
     use std::string::String;
-    use std::vector;
 
     // Struct untuk menyimpan daftar mahasiswa
     public struct DaftarMahasiswa has key {
@@ -236,7 +236,6 @@ module kampus::owned_objects {
 
 module kampus::shared_objects {
     use std::string::String;
-    use std::vector;
 
     // Struct untuk registrasi kampus (shared object)
     public struct RegistrasiKampus has key {
@@ -374,8 +373,7 @@ module kampus::capabilities_pattern {
 }
 
 module kampus::fungsi_lengkap {
-    use std::string::String;
-    use std::vector;
+    use std::string::{Self, String};
 
     // Error constants
     const ENIM_INVALID: u64 = 0;
@@ -398,7 +396,7 @@ module kampus::fungsi_lengkap {
         assert!(nim >= 20000000 && nim <= 29999999, ENIM_INVALID);
 
         // Validasi nama tidak kosong
-        assert!(std::string::length(&nama) > 0, 100);
+        assert!(string::length(&nama) > 0, 100);
 
         let profile = MahasiswaProfile {
             id: object::new(ctx),
@@ -434,7 +432,7 @@ module kampus::fungsi_lengkap {
 
         // Return early jika belum ada nilai
         if (jumlah_mk == 0) {
-            return (0, false, std::string::utf8(b"Belum ada nilai"))
+            return (0, false, string::utf8(b"Belum ada nilai"))
         };
 
         // Hitung rata-rata nilai
@@ -451,11 +449,11 @@ module kampus::fungsi_lengkap {
 
         // Tentukan status dan pesan
         let (bisa_lulus, pesan) = if (rata_rata >= 60 && profile.total_sks >= 144) {
-            (true, std::string::utf8(b"Bisa lulus"))
+            (true, string::utf8(b"Bisa lulus"))
         } else if (rata_rata < 60) {
-            (false, std::string::utf8(b"Nilai kurang"))
+            (false, string::utf8(b"Nilai kurang"))
         } else {
-            (false, std::string::utf8(b"SKS kurang"))
+            (false, string::utf8(b"SKS kurang"))
         };
 
         (rata_rata, bisa_lulus, pesan)
